@@ -9,18 +9,21 @@ def register_manage_scene_tools(mcp: FastMCP):
     def manage_scene(
         ctx: Context,
         action: str,
-        name: str,
-        path: str,
-        build_index: int,
+        name: str = None,
+        path: str = None,
+        build_index: int = None,
+        include_components: bool = False,
+        include_component_properties: bool = False,
     ) -> Dict[str, Any]:
         """Manages Unity scenes (load, save, create, get hierarchy, etc.).
 
         Args:
             action: Operation (e.g., 'load', 'save', 'create', 'get_hierarchy').
             name: Scene name (no extension) for create/load/save.
-            path: Asset path for scene operations (default: "Assets/").
+            path: Asset path for scene operations.
             build_index: Build index for load/build settings actions.
-            # Add other action-specific args as needed (e.g., for hierarchy depth)
+            include_components: Include component info in hierarchy responses.
+            include_component_properties: Include component property values.
 
         Returns:
             Dictionary with results ('success', 'message', 'data').
@@ -30,7 +33,9 @@ def register_manage_scene_tools(mcp: FastMCP):
                 "action": action,
                 "name": name,
                 "path": path,
-                "buildIndex": build_index
+                "buildIndex": build_index,
+                "includeComponents": include_components,
+                "includeComponentProperties": include_component_properties,
             }
             params = {k: v for k, v in params.items() if v is not None}
             

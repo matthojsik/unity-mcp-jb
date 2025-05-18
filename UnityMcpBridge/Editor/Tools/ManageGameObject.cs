@@ -2183,37 +2183,74 @@ namespace UnityMcpBridge.Editor.Tools
 
         /// <summary>
         /// Creates a serializable representation of a Component.
-        /// TODO: Add property serialization.
         /// </summary>
         private static object GetComponentData(Component c)
         {
             if (c == null)
                 return null;
+
             var data = new Dictionary<string, object>
             {
                 { "typeName", c.GetType().FullName },
                 { "instanceID", c.GetInstanceID() },
             };
 
-            // Attempt to serialize public properties/fields (can be noisy/complex)
-            /*
-            try {
-                var properties = new Dictionary<string, object>();
+            try
+            {
+                var props = new Dictionary<string, object>();
                 var type = c.GetType();
                 BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
-                
-                foreach (var prop in type.GetProperties(flags).Where(p => p.CanRead && p.GetIndexParameters().Length == 0)) {
-                    try { properties[prop.Name] = prop.GetValue(c); } catch { }
+
+                foreach (var prop in type.GetProperties(flags).Where(p => p.CanRead && p.GetIndexParameters().Length == 0))
+                {
+                    try
+                    {
+                        object val = prop.GetValue(c);
+                        if (IsSerializableValue(val))
+                            props[prop.Name] = val;
+                    }
+                    catch
+                    {
+                        // Ignore serialization errors for individual properties
+                    }
                 }
-                foreach (var field in type.GetFields(flags)) {
-                     try { properties[field.Name] = field.GetValue(c); } catch { }
+
+                foreach (var field in type.GetFields(flags))
+                {
+                    try
+                    {
+                        object val = field.GetValue(c);
+                        if (IsSerializableValue(val))
+                            props[field.Name] = val;
+                    }
+                    catch
+                    {
+                        // Ignore serialization errors for individual fields
+                    }
                 }
-                data["properties"] = properties;
-            } catch (Exception ex) {
+
+                data["properties"] = props;
+            }
+            catch (Exception ex)
+            {
                 data["propertiesError"] = ex.Message;
             }
-            */
+
             return data;
+        }
+
+        private static bool IsSerializableValue(object value)
+        {
+            if (value == null)
+                return true;
+
+            Type t = value.GetType();
+            if (t.IsPrimitive || t.IsEnum || t == typeof(string))
+                return true;
+            if (t == typeof(Vector2) || t == typeof(Vector3) || t == typeof(Vector4) || t == typeof(Quaternion) || t == typeof(Color))
+                return true;
+
+            return false;
         }
     }
 }

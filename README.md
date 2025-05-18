@@ -23,7 +23,7 @@ Unity MCP acts as a bridge, allowing AI assistants (like Claude, Cursor) to inte
   *   `read_console`: Gets messages from or clears the console.
   *   `manage_script`: Manages C# scripts (create, read, update, delete).
   *   `manage_editor`: Controls and queries the editor's state and settings.
-  *   `manage_scene`: Manages scenes (load, save, create, get hierarchy, etc.).
+  *   `manage_scene`: Manages scenes (load, save, create, get hierarchy, etc.). Optional flags return component details.
   *   `manage_asset`: Performs asset operations (import, create, modify, delete, etc.).
   *   `manage_gameobject`: Manages GameObjects: create, modify, delete, find, and component operations.
   *   `execute_menu_item`: Executes a menu item via its path (e.g., "File/Save Project").

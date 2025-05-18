@@ -77,7 +77,8 @@ namespace UnityMcpBridge.Editor
                 listener = new TcpListener(IPAddress.Loopback, unityPort);
                 listener.Start();
                 isRunning = true;
-                Debug.Log($"UnityMcpBridge started on port {unityPort}.");
+                string serverVersion = ServerInstaller.GetInstalledVersion();
+                Debug.Log($"UnityMcpBridge started on port {unityPort} (Server v{serverVersion}).");
                 // Assuming ListenerLoop and ProcessCommands are defined elsewhere
                 Task.Run(ListenerLoop);
                 EditorApplication.update += ProcessCommands;

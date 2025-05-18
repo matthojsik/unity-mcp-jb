@@ -108,6 +108,7 @@ Loads, saves, creates and queries scenes.
 /// Handles scene management operations like loading, saving, creating, and querying hierarchy.
 public static class ManageScene
 ```
+`manage_scene` accepts optional `include_components` and `include_component_properties` arguments to return detailed component data when retrieving scene hierarchies.
 【F:UnityMcpBridge/Editor/Tools/ManageScene.cs†L14-L18】
 
 ### manage_gameobject
@@ -157,7 +158,7 @@ public static class ExecuteMenuItem
 Once the Unity package is installed and the Python server is configured in Cursor's `mcp.json`, the tools above become callable as functions from within Cursor. For example:
 
 - `manage_gameobject(action="create", name="Player")` – creates a new GameObject named *Player*.
-- `manage_scene(action="get_hierarchy", path="Assets/Scenes/Main.unity")` – returns a structured description of a scene.
+- `manage_scene(action="get_hierarchy", path="Assets/Scenes/Main.unity", include_components=True, include_component_properties=True)` – returns a structured description of a scene with component info.
 - `execute_menu_item(menu_path="File/Save Project")` – triggers the Save Project command in the editor.
 
 Because the server is implemented using the FastMCP framework, these calls appear to Cursor as standard function-like tools with documentation, arguments and return values. This allows automation of complex Unity workflows from within the editor.
