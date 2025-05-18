@@ -25,7 +25,7 @@ Unity MCP acts as a bridge, allowing AI assistants (like Claude, Cursor) to inte
   *   `manage_editor`: Controls and queries the editor's state and settings.
   *   `manage_scene`: Manages scenes (load, save, create, get hierarchy, etc.).
   *   `manage_asset`: Performs asset operations (import, create, modify, delete, etc.).
-  *   `manage_gameobject`: Manages GameObjects: create, modify, delete, find, and component operations.
+  *   `manage_gameobject`: Manages GameObjects: create, modify, delete, find, and component operations. When retrieving objects you can optionally include component info using `include_components` or `include_component_properties`.
   *   `execute_menu_item`: Executes a menu item via its path (e.g., "File/Save Project").
 </details>
 
@@ -172,8 +172,10 @@ If Auto-Configure fails or you use a different client:
 2. **Start your MCP Client** (Claude, Cursor, etc.). It should automatically launch the Unity MCP Server (Python) using the configuration from Installation Step 3.
     
 3. **Interact!** Unity tools should now be available in your MCP Client.
-    
+
     Example Prompt: `Create a 3D player controller.`
+
+    Example Call: `manage_gameobject(action="find", target="Player", include_components=True, include_component_properties=True)`
     
 
 ---
