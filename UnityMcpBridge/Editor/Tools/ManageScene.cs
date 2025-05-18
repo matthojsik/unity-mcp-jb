@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -25,6 +26,9 @@ namespace UnityMcpBridge.Editor.Tools
             string name = @params["name"]?.ToString();
             string path = @params["path"]?.ToString(); // Relative to Assets/
             int? buildIndex = @params["buildIndex"]?.ToObject<int?>();
+            bool includeComponents = @params["includeComponents"]?.ToObject<bool>() ?? false;
+            bool includeComponentProperties =
+                @params["includeComponentProperties"]?.ToObject<bool>() ?? false;
             // bool loadAdditive = @params["loadAdditive"]?.ToObject<bool>() ?? false; // Example for future extension
 
             // Ensure path is relative to Assets/, removing any leading "Assets/"
@@ -98,7 +102,7 @@ namespace UnityMcpBridge.Editor.Tools
                     // Save current scene, optionally to a new path
                     return SaveScene(fullPath, relativePath);
                 case "get_hierarchy":
-                    return GetSceneHierarchy();
+                    return GetSceneHierarchy(includeComponents, includeComponentProperties);
                 case "get_active":
                     return GetActiveSceneInfo();
                 case "get_build_settings":
@@ -344,7 +348,7 @@ namespace UnityMcpBridge.Editor.Tools
             }
         }
 
-        private static object GetSceneHierarchy()
+        private static object GetSceneHierarchy(bool includeComponents, bool includeComponentProperties)
         {
             try
             {
@@ -357,7 +361,9 @@ namespace UnityMcpBridge.Editor.Tools
                 }
 
                 GameObject[] rootObjects = activeScene.GetRootGameObjects();
-                var hierarchy = rootObjects.Select(go => GetGameObjectDataRecursive(go)).ToList();
+                var hierarchy = rootObjects
+                    .Select(go => GetGameObjectDataRecursive(go, includeComponents, includeComponentProperties))
+                    .ToList();
 
                 return Response.Success(
                     $"Retrieved hierarchy for scene '{activeScene.name}'.",
@@ -373,7 +379,11 @@ namespace UnityMcpBridge.Editor.Tools
         /// <summary>
         /// Recursively builds a data representation of a GameObject and its children.
         /// </summary>
-        private static object GetGameObjectDataRecursive(GameObject go)
+        private static object GetGameObjectDataRecursive(
+            GameObject go,
+            bool includeComponents,
+            bool includeComponentProperties
+        )
         {
             if (go == null)
                 return null;
@@ -381,7 +391,13 @@ namespace UnityMcpBridge.Editor.Tools
             var childrenData = new List<object>();
             foreach (Transform child in go.transform)
             {
-                childrenData.Add(GetGameObjectDataRecursive(child.gameObject));
+                childrenData.Add(
+                    GetGameObjectDataRecursive(
+                        child.gameObject,
+                        includeComponents,
+                        includeComponentProperties
+                    )
+                );
             }
 
             var gameObjectData = new Dictionary<string, object>
@@ -420,7 +436,94 @@ namespace UnityMcpBridge.Editor.Tools
                 { "children", childrenData },
             };
 
+            if (includeComponents)
+            {
+                var comps = go.GetComponents<Component>()
+                    .Select(c => GetComponentData(c, includeComponentProperties))
+                    .ToList();
+                gameObjectData["components"] = comps;
+            }
+            else
+            {
+                gameObjectData["componentNames"] = go
+                    .GetComponents<Component>()
+                    .Select(c => c.GetType().FullName)
+                    .ToList();
+            }
+
             return gameObjectData;
+        }
+
+        private static object GetComponentData(Component c, bool includeProperties)
+        {
+            if (c == null)
+                return null;
+
+            var data = new Dictionary<string, object>
+            {
+                { "typeName", c.GetType().FullName },
+                { "instanceID", c.GetInstanceID() }
+            };
+
+            if (includeProperties)
+            {
+                try
+                {
+                    var props = new Dictionary<string, object>();
+                    var type = c.GetType();
+                    BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+
+                    foreach (var prop in type.GetProperties(flags).Where(p => p.CanRead && p.GetIndexParameters().Length == 0))
+                    {
+                        try
+                        {
+                            object val = prop.GetValue(c);
+                            if (IsSerializableValue(val))
+                                props[prop.Name] = val;
+                        }
+                        catch
+                        {
+                            // Ignore serialization errors for individual properties
+                        }
+                    }
+
+                    foreach (var field in type.GetFields(flags))
+                    {
+                        try
+                        {
+                            object val = field.GetValue(c);
+                            if (IsSerializableValue(val))
+                                props[field.Name] = val;
+                        }
+                        catch
+                        {
+                            // Ignore serialization errors for individual fields
+                        }
+                    }
+
+                    data["properties"] = props;
+                }
+                catch (Exception e)
+                {
+                    data["propertiesError"] = e.Message;
+                }
+            }
+
+            return data;
+        }
+
+        private static bool IsSerializableValue(object value)
+        {
+            if (value == null)
+                return true;
+
+            Type t = value.GetType();
+            if (t.IsPrimitive || t.IsEnum || t == typeof(string))
+                return true;
+            if (t == typeof(Vector2) || t == typeof(Vector3) || t == typeof(Vector4) || t == typeof(Quaternion) || t == typeof(Color))
+                return true;
+
+            return false;
         }
     }
 }
