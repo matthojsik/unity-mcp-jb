@@ -118,6 +118,7 @@ Allows creation, modification, searching and deletion of GameObjects in the curr
 public static class ManageGameObject
 ```
 【F:UnityMcpBridge/Editor/Tools/ManageGameObject.cs†L15-L18】
+Optional parameters `include_components` and `include_component_properties` control how much component data is returned when searching for objects or retrieving a scene hierarchy.
 
 ### manage_asset
 Supports importing, creating, modifying and retrieving info about assets and prefabs.
@@ -160,6 +161,7 @@ Once the Unity package is installed and the Python server is configured in Curso
 - `manage_gameobject(action="create", name="Player")` – creates a new GameObject named *Player*.
 - `manage_scene(action="get_hierarchy", path="Assets/Scenes/Main.unity", include_components=True, include_component_properties=True)` – returns a structured description of a scene with component info.
 - `execute_menu_item(menu_path="File/Save Project")` – triggers the Save Project command in the editor.
+- `manage_gameobject(action="find", target="Player", include_components=True, include_component_properties=True)` – find an object and include its components and their properties.
 
 Because the server is implemented using the FastMCP framework, these calls appear to Cursor as standard function-like tools with documentation, arguments and return values. This allows automation of complex Unity workflows from within the editor.
 
