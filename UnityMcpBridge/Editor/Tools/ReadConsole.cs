@@ -34,6 +34,25 @@ namespace UnityMcpBridge.Editor.Tools
         // Static constructor for reflection setup
         static ReadConsole()
         {
+            InitializeReflection();
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void InitOnSubsystemRegistration()
+        {
+            _startGettingEntriesMethod =
+                _endGettingEntriesMethod =
+                _clearMethod =
+                _getCountMethod =
+                _getEntryMethod =
+                    null;
+            _modeField = _messageField = _fileField = _lineField = _instanceIdField = null;
+
+            InitializeReflection();
+        }
+
+        private static void InitializeReflection()
+        {
             try
             {
                 Type logEntriesType = typeof(EditorApplication).Assembly.GetType(
@@ -104,9 +123,8 @@ namespace UnityMcpBridge.Editor.Tools
             catch (Exception e)
             {
                 Debug.LogError(
-                    $"[ReadConsole] Static Initialization Failed: Could not setup reflection for LogEntries/LogEntry. Console reading/clearing will likely fail. Specific Error: {e.Message}"
+                    $"[ReadConsole] Reflection setup failed: {e.Message}"
                 );
-                // Set members to null to prevent NullReferenceExceptions later, HandleCommand should check this.
                 _startGettingEntriesMethod =
                     _endGettingEntriesMethod =
                     _clearMethod =
