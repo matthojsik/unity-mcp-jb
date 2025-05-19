@@ -54,6 +54,15 @@ namespace UnityMcpBridge.Editor
             EditorApplication.quitting += Stop;
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void InitOnSubsystemRegistration()
+        {
+            listener = null;
+            isRunning = false;
+            commandQueue = new();
+            Start();
+        }
+
         public static void Start()
         {
             Stop();
