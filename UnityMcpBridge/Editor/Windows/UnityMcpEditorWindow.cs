@@ -16,7 +16,7 @@ namespace UnityMcpBridge.Editor.Windows
         private Vector2 scrollPosition;
         private string pythonServerInstallationStatus = "Not Installed";
         private Color pythonServerInstallationStatusColor = Color.red;
-        private const int unityPort = 6400; // Hardcoded Unity port
+        private int unityPort;
         private const int mcpPort = 6500; // Hardcoded MCP port
         private readonly McpClients mcpClients = new();
 
@@ -31,6 +31,7 @@ namespace UnityMcpBridge.Editor.Windows
             UpdatePythonServerInstallationStatus();
 
             isUnityBridgeRunning = UnityMcpBridge.IsRunning;
+            unityPort = UnityMcpBridge.UnityPort;
             foreach (McpClient mcpClient in mcpClients.clients)
             {
                 CheckMcpConfiguration(mcpClient);
@@ -243,7 +244,7 @@ namespace UnityMcpBridge.Editor.Windows
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.LabelField("Unity MCP Bridge", EditorStyles.boldLabel);
             EditorGUILayout.LabelField($"Status: {(isUnityBridgeRunning ? "Running" : "Stopped")}");
-            EditorGUILayout.LabelField($"Port: {unityPort}");
+            unityPort = EditorGUILayout.IntField("Port", unityPort);
 
             if (GUILayout.Button(isUnityBridgeRunning ? "Stop Bridge" : "Start Bridge"))
             {
@@ -268,6 +269,7 @@ namespace UnityMcpBridge.Editor.Windows
             }
             else
             {
+                UnityMcpBridge.UnityPort = unityPort;
                 UnityMcpBridge.Start();
             }
 
