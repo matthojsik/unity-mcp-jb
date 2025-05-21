@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityMcpBridge.Editor.Helpers;
 using UnityMcpBridge.Editor.Models;
+using UnityMcpBridge.Editor.Data;
 using UnityMcpBridge.Editor.Tools;
 
 namespace UnityMcpBridge.Editor
@@ -25,7 +26,18 @@ namespace UnityMcpBridge.Editor
             string,
             (string commandJson, TaskCompletionSource<string> tcs)
         > commandQueue = new();
-        private static readonly int unityPort = 6400; // Hardcoded port
+
+        private static readonly DefaultServerConfig config = new();
+
+        /// <summary>
+        ///     Port that the bridge listens on for incoming connections.
+        ///     Exposed so the editor window can modify it before starting.
+        /// </summary>
+        public static int UnityPort
+        {
+            get => config.unityPort;
+            set => config.unityPort = value;
+        }
 
         public static bool IsRunning => isRunning;
 
@@ -83,11 +95,11 @@ namespace UnityMcpBridge.Editor
 
             try
             {
-                listener = new TcpListener(IPAddress.Loopback, unityPort);
+                listener = new TcpListener(IPAddress.Loopback, UnityPort);
                 listener.Start();
                 isRunning = true;
                 string serverVersion = ServerInstaller.GetInstalledVersion();
-                Debug.Log($"UnityMcpBridge started on port {unityPort} (Server v{serverVersion}).");
+                Debug.Log($"UnityMcpBridge started on port {UnityPort} (Server v{serverVersion}).");
                 // Assuming ListenerLoop and ProcessCommands are defined elsewhere
                 Task.Run(ListenerLoop);
                 EditorApplication.update += ProcessCommands;
@@ -97,7 +109,7 @@ namespace UnityMcpBridge.Editor
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                 {
                     Debug.LogError(
-                        $"Port {unityPort} is already in use. Ensure no other instances are running or change the port."
+                        $"Port {UnityPort} is already in use. Ensure no other instances are running or change the port."
                     );
                 }
                 else

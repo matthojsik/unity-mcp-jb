@@ -6,7 +6,7 @@ This document explains the architecture and workflow of the Unity MCP project an
 
 Unity MCP has two main components:
 
-1. **UnityMcpBridge** – a Unity package running inside the Editor. It listens on TCP port `6400`, receives JSON commands, performs the requested operations in the editor and sends the results back.
+1. **UnityMcpBridge** – a Unity package running inside the Editor. It listens on a TCP port (default `6400`) that can be changed via the `UNITY_MCP_PORT` environment variable or a configuration file. It receives JSON commands, performs the requested operations in the editor and sends the results back.
 2. **UnityMcpServer** – a Python server that exposes MCP tools. It communicates with the UnityMcpBridge via sockets and allows MCP clients (like Cursor) to call Unity operations as functions.
 
 The usual data flow is:
