@@ -62,6 +62,12 @@ namespace UnityMcpBridge.Editor
 
         static UnityMcpBridge()
         {
+            string envPort = Environment.GetEnvironmentVariable("UNITY_MCP_PORT");
+            if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out int parsed))
+            {
+                UnityPort = parsed;
+            }
+
             Start();
             EditorApplication.quitting += Stop;
         }
