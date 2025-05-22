@@ -406,8 +406,14 @@ namespace UnityMcpBridge.Editor.Windows
                     }
                 }
 
-                // If still not found, return the placeholder path
-                Debug.LogWarning("Could not find Python directory, using placeholder path");
+                // If no locations were found, fall back to the installed server path
+                // Only warn if the server isn't actually installed there
+                if (!File.Exists(Path.Combine(pythonDir, "server.py")))
+                {
+                    Debug.LogWarning(
+                        "Could not find Python directory, using placeholder path"
+                    );
+                }
             }
             catch (Exception e)
             {
