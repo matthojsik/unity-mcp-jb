@@ -75,11 +75,13 @@ namespace UnityMcpBridge.Editor
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void InitOnSubsystemRegistration()
         {
-            // Stop the previous domain's instance so the port is freed before
-            // the new domain initializes via the static constructor.
+            // Unsubscribe from the editor quitting event from the *previous* domain instance.
+            EditorApplication.quitting -= Stop;
+
+            // Stop any running instance from the previous domain load.
             Stop();
 
-            // Reset static collections for a clean state in the new domain.
+            // Reset other static state.
             commandQueue = new();
 
             // Do not call Start() here. The static constructor marked with
