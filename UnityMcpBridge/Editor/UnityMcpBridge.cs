@@ -62,12 +62,15 @@ namespace UnityMcpBridge.Editor
 
         static UnityMcpBridge()
         {
+            // Allow the listening port to be overridden via environment variable
             string envPort = Environment.GetEnvironmentVariable("UNITY_MCP_PORT");
             if (!string.IsNullOrEmpty(envPort) && int.TryParse(envPort, out int parsed))
             {
                 UnityPort = parsed;
             }
 
+            // Start the bridge for the current domain and make sure we clean up
+            // when Unity closes.
             Start();
             EditorApplication.quitting += Stop;
         }
@@ -75,19 +78,17 @@ namespace UnityMcpBridge.Editor
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void InitOnSubsystemRegistration()
         {
-            // Unsubscribe from the editor quitting event from the *previous* domain instance.
-            EditorApplication.quitting -= Stop;
-
-            // Stop any running instance from the previous domain load.
+            // Unity calls this before static constructors on a domain reload.
+            // Clean up any lingering state from the previous domain.
+            EditorApplication.quitting -= Stop; // remove old subscription
             Stop();
 
-            // Explicitly reset static fields in case the analyzer flags them.
             listener = null;
             isRunning = false;
             commandQueue = new();
 
-            // Do not call Start() here. The static constructor marked with
-            // [InitializeOnLoad] will invoke Start() when the new domain loads.
+            // DO NOT start the bridge here; the static constructor handles it
+            // for the newly loaded domain.
         }
 
         public static void Start()
