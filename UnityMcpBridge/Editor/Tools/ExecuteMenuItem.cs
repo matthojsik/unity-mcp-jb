@@ -93,7 +93,8 @@ namespace UnityMcpBridge.Editor.Tools
             try
             {
                 // Attempt to execute the menu item on the main thread using delayCall for safety.
-                EditorApplication.delayCall += () =>
+                EditorApplication.CallbackFunction callback = null;
+                callback = () =>
                 {
                     try
                     {
@@ -112,7 +113,14 @@ namespace UnityMcpBridge.Editor.Tools
                             $"[ExecuteMenuItem] Exception during delayed execution of '{menuPath}': {delayEx}"
                         );
                     }
+                    finally
+                    {
+                        // Ensure we unsubscribe after execution to avoid lingering callbacks
+                        EditorApplication.delayCall -= callback;
+                    }
                 };
+
+                EditorApplication.delayCall += callback;
 
                 // Report attempt immediately, as execution is delayed.
                 return Response.Success(
