@@ -81,7 +81,9 @@ namespace UnityMcpBridge.Editor
             // Stop any running instance from the previous domain load.
             Stop();
 
-            // Reset other static state.
+            // Explicitly reset static fields in case the analyzer flags them.
+            listener = null;
+            isRunning = false;
             commandQueue = new();
 
             // Do not call Start() here. The static constructor marked with
