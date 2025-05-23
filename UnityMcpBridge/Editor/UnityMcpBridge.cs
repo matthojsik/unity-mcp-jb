@@ -112,6 +112,15 @@ namespace UnityMcpBridge.Editor
             try
             {
                 listener = new TcpListener(IPAddress.Loopback, UnityPort);
+                // Allow the listener to reuse the address so restarting the
+                // editor doesn't hit "address already in use" when sockets are
+                // in TIME_WAIT.
+                listener.Server.SetSocketOption(
+                    SocketOptionLevel.Socket,
+                    SocketOptionName.ReuseAddress,
+                    true
+                );
+                listener.ExclusiveAddressUse = false;
                 listener.Start();
                 isRunning = true;
                 string serverVersion = ServerInstaller.GetInstalledVersion();

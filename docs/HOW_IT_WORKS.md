@@ -66,11 +66,13 @@ The bridge lives in `UnityMcpBridge/Editor`. It launches a TCP listener when the
 
 ```csharp
 listener = new TcpListener(IPAddress.Loopback, unityPort);
+listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+listener.ExclusiveAddressUse = false;
 listener.Start();
 Task.Run(ListenerLoop);
 EditorApplication.update += ProcessCommands;
 ```
-【F:UnityMcpBridge/Editor/UnityMcpBridge.cs†L132-L142】
+【F:UnityMcpBridge/Editor/UnityMcpBridge.cs†L114-L130】
 
 Each command is routed based on the tool name. For example the `ExecuteCommand` method maps command types to the tool handlers:
 
